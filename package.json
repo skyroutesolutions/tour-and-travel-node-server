@@ -1,0 +1,21 @@
+{
+  "name": "tour-and-travels-server",
+  "version": "1.0.0",
+  "description": "backend server developed for tours and travel websites",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "SJ0612",
+    "SkyRoute Solution",
+    "Tour and Travels"
+  ],
+  "author": "Samarth Jain",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2",
+    "mongodb": "^6.13.0"
+  }
+}
