@@ -11,6 +11,11 @@ import {
   getTestimonialById,
   updateTestimonial,
   deleteTestimonial,
+  addService,
+  getAllServices,
+  getServiceById,
+  updateService,
+  deleteService,
 } from "../controllers/index.js";
 
 const app = express();
@@ -27,5 +32,11 @@ app.get("/testimonials", getAllTestimonials);
 app.get("/testimonials/:id", getTestimonialById);
 app.put("/testimonials/:id", updateTestimonial);
 app.delete("/testimonials/:id", deleteTestimonial);
+
+app.post("/add-service", addService);
+app.get("/services", getAllServices);
+app.get("/services/:id", getServiceById);
+app.put("/services/:id", updateService);
+app.delete("/services/:id", deleteService);
 
 export default app;

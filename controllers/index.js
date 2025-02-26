@@ -190,3 +190,101 @@ export const deleteTestimonial = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+// 📌 API Endpoints for Services
+
+export const addService = async (req, res) => {
+  try {
+    const db = await getDatabase();
+    const services = db.collection("services");
+
+    const { image, location, title, content, secondaryText } = req.body;
+    if (!image || !location || !title || !content || !secondaryText) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const newService = { image, location, title, content, secondaryText, createdAt: new Date() };
+    await services.insertOne(newService);
+
+    res.status(201).json({ message: "Service successfully added", data: newService });
+  } catch (error) {
+    console.error("❌ Error adding service:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getAllServices = async (req, res) => {
+  try {
+    const db = await getDatabase();
+    const services = db.collection("services");
+
+    const allServices = await services.find().toArray();
+    res.status(200).json(allServices);
+  } catch (error) {
+    console.error("❌ Error fetching services:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getServiceById = async (req, res) => {
+  try {
+    const db = await getDatabase();
+    const services = db.collection("services");
+
+    const { id } = req.params;
+    const service = await services.findOne({ _id: new ObjectId(id) });
+
+    if (!service) {
+      return res.status(404).json({ message: "Service not found" });
+    }
+
+    res.status(200).json(service);
+  } catch (error) {
+    console.error("❌ Error fetching service:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const updateService = async (req, res) => {
+  try {
+    const db = await getDatabase();
+    const services = db.collection("services");
+
+    const { id } = req.params;
+    const { image, location, title, content, secondaryText } = req.body;
+
+    const updatedData = { image, location, title, content, secondaryText };
+    const updateResult = await services.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updatedData }
+    );
+
+    if (updateResult.matchedCount === 0) {
+      return res.status(404).json({ message: "Service not found" });
+    }
+
+    res.status(200).json({ message: "Service updated successfully" });
+  } catch (error) {
+    console.error("❌ Error updating service:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const deleteService = async (req, res) => {
+  try {
+    const db = await getDatabase();
+    const services = db.collection("services");
+
+    const { id } = req.params;
+    const deleteResult = await services.deleteOne({ _id: new ObjectId(id) });
+
+    if (deleteResult.deletedCount === 0) {
+      return res.status(404).json({ message: "Service not found" });
+    }
+
+    res.status(200).json({ message: "Service deleted successfully" });
+  } catch (error) {
+    console.error("❌ Error deleting service:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
