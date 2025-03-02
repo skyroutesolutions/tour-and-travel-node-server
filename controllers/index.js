@@ -288,3 +288,161 @@ export const deleteService = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+// 📌 API Endpoints for Tour packages
+
+export const addTourPackage = async (req, res) => {
+  try {
+    const db = await getDatabase();
+    const tours = db.collection("tour_packages");
+
+    const { image, location, title, description, price, type, Language } = req.body;
+
+    if (!image || !location || !title || !description || !price || !type || !Language) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const newTour = {
+      image,
+      location,
+      title,
+      description,
+      rating: 0,         // Initial rating
+      ratingCount: 0,    // Number of ratings
+      price,
+      type,
+      Language,
+      ratings: [],       // Stores individual user ratings
+      createdAt: new Date(),
+    };
+
+    await tours.insertOne(newTour);
+    res.status(201).json({ message: "Tour package successfully added", data: newTour });
+  } catch (error) {
+    console.error("❌ Error adding tour package:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getAllTourPackages = async (req, res) => {
+  try {
+    const db = await getDatabase();
+    const tours = db.collection("tour_packages");
+
+    const allTours = await tours.find().toArray();
+    res.status(200).json(allTours);
+  } catch (error) {
+    console.error("❌ Error fetching tour packages:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getTourPackageById = async (req, res) => {
+  try {
+    const db = await getDatabase();
+    const tours = db.collection("tour_packages");
+
+    const { id } = req.params;
+    const tour = await tours.findOne({ _id: new ObjectId(id) });
+
+    if (!tour) {
+      return res.status(404).json({ message: "Tour package not found" });
+    }
+
+    res.status(200).json(tour);
+  } catch (error) {
+    console.error("❌ Error fetching tour package:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const updateTourPackage = async (req, res) => {
+  try {
+    const db = await getDatabase();
+    const tours = db.collection("tour_packages");
+
+    const { id } = req.params;
+    const { image, location, title, description, price, type, Language } = req.body;
+
+    const updatedData = { image, location, title, description, price, type, Language };
+
+    const updateResult = await tours.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updatedData }
+    );
+
+    if (updateResult.matchedCount === 0) {
+      return res.status(404).json({ message: "Tour package not found" });
+    }
+
+    res.status(200).json({ message: "Tour package updated successfully" });
+  } catch (error) {
+    console.error("❌ Error updating tour package:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const deleteTourPackage = async (req, res) => {
+  try {
+    const db = await getDatabase();
+    const tours = db.collection("tour_packages");
+
+    const { id } = req.params;
+    const deleteResult = await tours.deleteOne({ _id: new ObjectId(id) });
+
+    if (deleteResult.deletedCount === 0) {
+      return res.status(404).json({ message: "Tour package not found" });
+    }
+
+    res.status(200).json({ message: "Tour package deleted successfully" });
+  } catch (error) {
+    console.error("❌ Error deleting tour package:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const addRating = async (req, res) => {
+  try {
+    const db = await getDatabase();
+    const tours = db.collection("tour_packages");
+
+    const { id } = req.params;
+    const { rating } = req.body;
+
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ message: "Rating must be between 1 and 5" });
+    }
+
+    const tour = await tours.findOne({ _id: new ObjectId(id) });
+
+    if (!tour) {
+      return res.status(404).json({ message: "Tour package not found" });
+    }
+
+    // Update ratings array
+    const updatedRatings = [...tour.ratings, rating];
+
+    // Calculate new average rating
+    const newRating = updatedRatings.reduce((sum, r) => sum + r, 0) / updatedRatings.length;
+
+    const updateResult = await tours.updateOne(
+      { _id: new ObjectId(id) },
+      { 
+        $set: { 
+          ratings: updatedRatings, 
+          rating: parseFloat(newRating.toFixed(1)), 
+          ratingCount: updatedRatings.length 
+        } 
+      }
+    );
+
+    if (updateResult.modifiedCount === 0) {
+      return res.status(500).json({ message: "Failed to update rating" });
+    }
+
+    res.status(200).json({ message: "Rating added successfully", newRating: newRating.toFixed(1) });
+  } catch (error) {
+    console.error("❌ Error adding rating:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
