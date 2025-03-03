@@ -446,3 +446,152 @@ export const addRating = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+// 📌 API Endpoints for Blogs
+
+export const addBlog = async (req, res) => {
+  try {
+    const db = await getDatabase();
+    const blogs = db.collection("blogs");
+
+    const { author, title, description, image, content, duration } = req.body;
+
+    if (!author || !title || !description || !image || !content || !duration) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const newBlog = {
+      author,
+      title,
+      description,
+      image,
+      content,
+      duration,
+      postedAt: new Date(),
+      comments: [], // Initially empty
+    };
+
+    await blogs.insertOne(newBlog);
+    res.status(201).json({ message: "Blog successfully added", data: newBlog });
+  } catch (error) {
+    console.error("❌ Error adding blog:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getAllBlogs = async (req, res) => {
+  try {
+    const db = await getDatabase();
+    const blogs = db.collection("blogs");
+
+    const allBlogs = await blogs.find().toArray();
+    res.status(200).json(allBlogs);
+  } catch (error) {
+    console.error("❌ Error fetching blogs:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getBlogById = async (req, res) => {
+  try {
+    const db = await getDatabase();
+    const blogs = db.collection("blogs");
+
+    const { id } = req.params;
+    const blog = await blogs.findOne({ _id: new ObjectId(id) });
+
+    if (!blog) {
+      return res.status(404).json({ message: "Blog not found" });
+    }
+
+    res.status(200).json(blog);
+  } catch (error) {
+    console.error("❌ Error fetching blog:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const updateBlog = async (req, res) => {
+  try {
+    const db = await getDatabase();
+    const blogs = db.collection("blogs");
+
+    const { id } = req.params;
+    const { author, title, description, image, content, duration } = req.body;
+
+    const updatedData = { author, title, description, image, content, duration };
+
+    const updateResult = await blogs.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updatedData }
+    );
+
+    if (updateResult.matchedCount === 0) {
+      return res.status(404).json({ message: "Blog not found" });
+    }
+
+    res.status(200).json({ message: "Blog updated successfully" });
+  } catch (error) {
+    console.error("❌ Error updating blog:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const deleteBlog = async (req, res) => {
+  try {
+    const db = await getDatabase();
+    const blogs = db.collection("blogs");
+
+    const { id } = req.params;
+    const deleteResult = await blogs.deleteOne({ _id: new ObjectId(id) });
+
+    if (deleteResult.deletedCount === 0) {
+      return res.status(404).json({ message: "Blog not found" });
+    }
+
+    res.status(200).json({ message: "Blog deleted successfully" });
+  } catch (error) {
+    console.error("❌ Error deleting blog:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const addComment = async (req, res) => {
+  try {
+    const db = await getDatabase();
+    const blogs = db.collection("blogs");
+
+    const { id } = req.params;
+    const { author, content } = req.body;
+
+    if (!author || !content) {
+      return res.status(400).json({ message: "Author and content are required" });
+    }
+
+    const blog = await blogs.findOne({ _id: new ObjectId(id) });
+
+    if (!blog) {
+      return res.status(404).json({ message: "Blog not found" });
+    }
+
+    const newComment = {
+      author,
+      content,
+      time: new Date(),
+    };
+
+    const updateResult = await blogs.updateOne(
+      { _id: new ObjectId(id) },
+      { $push: { comments: newComment } }
+    );
+
+    if (updateResult.modifiedCount === 0) {
+      return res.status(500).json({ message: "Failed to add comment" });
+    }
+
+    res.status(200).json({ message: "Comment added successfully", comment: newComment });
+  } catch (error) {
+    console.error("❌ Error adding comment:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

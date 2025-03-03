@@ -22,6 +22,12 @@ import {
   updateTourPackage,
   deleteTourPackage,
   addRating,
+  addBlog,
+  getAllBlogs,
+  getBlogById,
+  updateBlog,
+  deleteBlog,
+  addComment,
 } from "../controllers/index.js";
 
 const app = express();
@@ -51,5 +57,12 @@ app.get("/tours/:id", getTourPackageById);
 app.put("/tours/:id", updateTourPackage);
 app.delete("/tours/:id", deleteTourPackage);
 app.post("/tours/:id/rating", addRating);
+
+app.post("/add-blog", addBlog);
+app.get("/blogs", getAllBlogs);
+app.get("/blogs/:id", getBlogById);
+app.put("/blogs/:id", updateBlog);
+app.delete("/blogs/:id", deleteBlog);
+app.post("/blogs/:id/comment", addComment);
 
 export default app;
